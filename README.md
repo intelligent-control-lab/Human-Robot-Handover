@@ -42,3 +42,7 @@ The handover pipeline is tested on FANUC LR-mate 200id 7L robot with the Speedgo
 5. On the teaching pendant, select the Stream Motion program.
 6. On the robot controll box, press the green button.
 7. Run `demo.m`.
+
+
+## Acknowledgement
+This project is in part supported by Siemens.
