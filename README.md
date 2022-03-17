@@ -1,4 +1,4 @@
-# Siemens-Robot-Handover
+# Human-Robot-Handover
 This repo implements the safe robot handover.
 
 Hardwares: FANUC LR-mate 200id 7L robot, Speedgoat.
