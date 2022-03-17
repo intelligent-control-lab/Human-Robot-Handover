@@ -25,7 +25,7 @@
 
 Note: The gripper and the FTS will be used only when `USE_GRIPPER` and `USE_FTS` are both turned on.
 
-## Handover
+## Execution Procedure
 The handover pipeline is tested on FANUC LR-mate 200id 7L robot with the Speedgoat basline.
 1. Turn on the Speedgoat by pressing the power button.
 2. Turn on the FANUC robot by turning the switch 90 degree clockwise.
