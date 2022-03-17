@@ -7,7 +7,7 @@
 
 
 ## Camera Calibration Procedure
-1. Print an Aruco tag and place it in the scene. Make sure it is visible by the camera.
+1. Print an Aruco tag and place it in the scene. Make sure it is visible to the camera.
 2. Run `test_kinect.m`.
 3. Adjust parameters in `calib.py`.
 * `cam_mtx`: Camera intrinsic matrix.
