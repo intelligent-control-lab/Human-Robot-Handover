@@ -24,10 +24,6 @@ The modules with black border run at 1kHz and the modules with red border run at
 * `State Machine`: The state machine module, shown in blue, tracks the controller and robot states and sends the feedback to the host computer and appropriate position command to the robot accordingly.
 * `Safe Control`: The safe control module, shown in orange, implements JSSA and guards the nominal control output. It modifies the nominal control if needed. The input is the nominal jerk command and the output is the safe position command.
 
-### State Machine Diagram 
-
-<img src="doc/state_machine.jpg" width="900">
-
 ### Trajectory Computation
 See [trajectory computation](https://drive.google.com/file/d/1cCfQcyXHuPSSkdjDL4oviiMjiLxOBj-5/view?usp=sharing) for the detail.
 
