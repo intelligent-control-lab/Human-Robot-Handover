@@ -1,28 +1,11 @@
 # Real-time Jerk-bounded Position Controller
 
-This repo contains the real-time jerk-bounded position controller for industrial robots, e.g. the FANUC LR-mate 200id 7L.
+This folder contains the real-time jerk-bounded position controller for industrial robots, e.g. the FANUC LR-mate 200id 7L.
 
 Functions included:
 * Joint trajectory tracking.
 * Real-time online joint trajectory modification.
 * Jerk-based Safe Set Algorithm (JSSA).
-
-Hardwares: FANUC LR-mate 200id 7L robot, Speedgoat.
-
-Question contact: ruixuanl@andrew.cmu.edu.
-
-## Operation Guide
-The current implementation was tested on the FANUC LR-mate 200id 7L robot.
-
-1. Compile the Simulink model of the controller. In the MATLAB terminal, run `make exp`.
-2. Turn on the Speedgoat by pressing the power button.
-3. Turn on the FANUC robot by turning the switch 90 degree clockwise.
-4. On the teaching pendant, press `Shift`+`Reset`.
-5. On the teaching pendant, press `FCTN`->`Abort All`.
-6. On the teaching pendant, select the Stream Motion program.
-7. On the robot controll box, press the green button.
-8. Run `Fanuc_controller_test.m`.
-
 
 ## Controller Design
 
