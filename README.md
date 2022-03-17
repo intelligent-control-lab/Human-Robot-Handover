@@ -1,4 +1,12 @@
 # Siemens-Robot-Handover
+This repo implements the safe robot handover.
+
+Hardwares: FANUC LR-mate 200id 7L robot, Speedgoat.
+
+Question contact: 
+* ruixuanl@andrew.cmu.edu
+* ruic3@andrew.cmu.edu
+
 ## Setup
 1. Follow the instructions in `./Calibration/` to calibrate the camera.
 2. Build the controller.
