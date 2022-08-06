@@ -22,17 +22,17 @@
 
 % clear all;
 clc;
+clf;
 close all;
 ROBOT = 'LRMate200iD7L';
 MODE = 'HumanINTR';%'CamerINTR'; %'CamerINTR'; % HumanINTR for mouse control; HuRobINTR: perception using camera.W
 USE_ROBOT = 0; % True: real robot involved. False: only target machine. No robot needed.
 enbSSA = 1; % 1: enable SSA. 0: disable SSA.
-tasks = load('task.txt')';
+tasks = load('task.txt')';  
 USE_GRIPPER = 0;
 USE_FTS = 0;
-
-load_dependencies;
-num_tasks = size(tasks, 2);
+load_dependencies;  %load relevent folder
+num_tasks = size(tasks, 2); %size(tasks, 2)
 task_id = 0;
 % task_id_last = -1;
 bootup = true;
@@ -86,22 +86,24 @@ switch MODE
         text1handle = text(0, max(ylim)+1, max(zlim)+0.5, 'Please calibrate...');
         set(text1handle, 'string','Test runing...')
 end
-
 % Draw figures
 draw_HR_skeleton;
+plot3([0, 1], [1, 0], [0, 0]);
 pre_HuCap = HuCap;
 vel_t = 1000;
 
 % Setup Target PC
-tg = slrealtime('fanuc_speedgoat');
-if USE_ROBOT
-    load(tg, 'icl_control');
-else
-    load(tg, 'icl_control_sim');
-end
-start(tg);
+% tg = slrealtime('fanuc_speedgoat');
+% if USE_ROBOT
+%     load(tg, 'icl_control');
+% else
+%     load(tg, 'icl_control_sim');
+% end
+% start(tg);
+
 comm=SLRTComm;
-comm.timeout=20;
+comm.ip = '127.0.0.1';    %127.0.0.1 / 192.168.7.5
+comm.timeout=10;
 comm.startSTMO;
 pause(0.5);
 comm.setRobotProperty(robot.nlink,robot.DH,robot.cap,robot.base,robot.ssa_margin);
@@ -126,9 +128,16 @@ STATE = "init_s"; STATE_last = "none";
 goal_type = "regular"; goal_type_last = "none";
 goal = zeros(6, 1);
 vel_timer = tic;
+mouse_sampletimer = vel_timer;
+USE_MOUSE = 1;
+if USE_MOUSE
+    mouse_traj = [0;1;1];
+else 
+    load('mouse_traj_sample.mat');
+end
 wrist_trigger_cnt = 0;
 home_pos = [0;0;0;0;-90;0];
-
+cnt = 0;
 while true
     if STATE ~= STATE_last || goal_type ~= goal_type_last || task_id ~= task_id_last
         disp([STATE goal_type task_id]);
@@ -142,8 +151,26 @@ while true
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     switch MODE
         case 'HumanINTR'
-            cursor_pos_current = get(0,'PointerLocation');
-            unew = (cursor_pos_current - Center)./(URCorner - Center).*init_pos; % normalized
+            if USE_MOUSE
+                cursor_pos_current = get(0,'PointerLocation');
+                unew = (cursor_pos_current - Center)./(URCorner - Center).*init_pos  % normalized
+                mouse_traj(:, end+1) = [toc(mouse_sampletimer);unew'];
+            else
+                curr_tim = toc(mouse_sampletimer);
+                while curr_tim > mouse_traj(1, i)
+                    i = i + 1;
+                    if i > size(mouse_traj, 2)
+                        break
+                    end
+                end
+                if i > size(mouse_traj, 2)
+                    break
+                else
+                    unew = (curr_tim-mouse_traj(1, i-1))/(mouse_traj(1, i)-mouse_traj(1, i-1)) ...
+                        *(mouse_traj(2:3, i)-mouse_traj(2:3, i-1)) + mouse_traj(2:3, i-1);
+                    unew = unew';
+                end
+            end
             xref=HuCap{1}.p(1,1); 
             yref=HuCap{1}.p(2,1);
             for i=1:size(HuCap, 2)
@@ -207,7 +234,7 @@ while true
     % Get current pos and replan feedback %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     [jpos, jvel, ssa_replan_request, controller_replan] = comm.getRobData;
-
+    jpos';   %just to output jpos
     %%%%%%%%%%%%%%%%%
     % State Machine %
     %%%%%%%%%%%%%%%%%
@@ -397,7 +424,7 @@ end
 disp("Simulation Done!");
 comm.endSTMO;
 pause(0.5);
-stop(tg);
+% stop(tg);
 if MODE == 'CamerINTR'
     stop(depthVid);
 end

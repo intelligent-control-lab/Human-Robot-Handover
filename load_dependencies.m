@@ -22,10 +22,12 @@
 
 % Dependencies
 addpath('Robot');
+addpath('Calibration');
 addpath('Visualization');
 addpath('Visualization/figure');
 addpath('Real-time-Jerk-bounded-Position-Controller');
 addpath('Real-time-Jerk-bounded-Position-Controller/lib');
+addpath('Real-time-Jerk-bounded-Position-Controller/sub_models');
 addpath('Gripper');
 addpath('FTS');
 addpath('Sound')

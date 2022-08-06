@@ -31,6 +31,7 @@ classdef SLRTComm < handle
         timeout=60;
         SSA_replan_cnt=0;
         controller_status=0;
+        ip = '127.0.0.1';   %local host
     end
     
     methods
@@ -40,12 +41,12 @@ classdef SLRTComm < handle
         
         % start stream motion (STMO), port 8001
         function startSTMO(obj)
-            judp('send',8001,'192.168.7.5',int8(1)); % start stream motion
+            judp('send',8001,obj.ip,int8(1)); % start stream motion
         end
         
         % stop stream motion (STMO), port 8001
         function endSTMO(obj)
-            judp('send',8001,'192.168.7.5',int8(0)); % finish stream motion
+            judp('send',8001,obj.ip,int8(0)); % finish stream motion
             %obj.tg.stop;
         end
         
@@ -53,9 +54,9 @@ classdef SLRTComm < handle
         % setup Vm, Am, Jm in deg unit
         % Not used for now
         function setVmAmJm(obj,Vm,Am,Jm)
-            judp('send',8003,'192.168.7.5',typecast(single(Vm),'int8'));
-            judp('send',8004,'192.168.7.5',typecast(single(Am),'int8'));
-            judp('send',8005,'192.168.7.5',typecast(single(Jm),'int8'));
+            judp('send',8003,obj.ip,typecast(single(Vm),'int8'));
+            judp('send',8004,obj.ip,typecast(single(Am),'int8'));
+            judp('send',8005,obj.ip,typecast(single(Jm),'int8'));
         end
         
         % Port: 25001
@@ -65,12 +66,14 @@ classdef SLRTComm < handle
         % replan_request: 1: SSA ongoing. 0: SSA
         % inactive.
         % status: 0: controller idle. 1: controller executing.
-        function [q_cur, q_vel, SSA_replan, controller_replan] = getRobData(obj)
-            judp('send',8106,'192.168.7.5',int8(0));
-            judp('send',8106,'192.168.7.5',int8(1));
+        function [q_cur, q_vel, SSA_replan, controller_replan] = getRobData(obj)   %, msg
+            judp('send',8106,obj.ip,int8(0));
+            judp('send',8106,obj.ip,int8(1));
+      
             msg=judp('receive',25001,56,obj.timeout*1000);
             msg=typecast(msg,'single');
             msg=double(msg);
+
             q_cur=msg(1:6);
             q_vel=msg(7:12);
             ssa=msg(13);
@@ -92,7 +95,7 @@ classdef SLRTComm < handle
 
         % Port: 8105
         function enableSSA(obj,enb)
-            judp('send',8105,'192.168.7.5',typecast(single([enb]),'int8'));
+            judp('send',8105,obj.ip,typecast(single([enb]),'int8'));
         end
             
         % Port: 8107
@@ -110,7 +113,7 @@ classdef SLRTComm < handle
                 RoCap_s(1,(i-1)*7+2:(i-1)*7+4) = cap.p(:, 1);
                 RoCap_s(1,(i-1)*7+5:i*7) = cap.p(:, 2);
             end
-            judp('send',8107,'192.168.7.5',typecast(single([nlink,DH_s,RoCap_s,base.',margin]),'int8'));
+            judp('send',8107,obj.ip,typecast(single([nlink,DH_s,RoCap_s,base.',margin]),'int8'));
         end
         
         % Port: 8108
@@ -130,31 +133,31 @@ classdef SLRTComm < handle
                 HuCap_vel(1,(i-1)*6+4:i*6) = (cap.p(:, 2)'-pre_cap.p(:,2)')/vel_t;
                 
             end
-            judp('send',8108,'192.168.7.5',typecast(single([nlink,HuCap_s,HuCap_vel]),'int8'));
+            judp('send',8108,obj.ip,typecast(single([nlink,HuCap_s,HuCap_vel]),'int8'));
         end
         
-%         function [status,tskcnt] = drvJntTrajWait(obj,q,traj_hz,resample_hz,ovr,task_seq)
-%             K1 = 1/traj_hz/0.008/resample_hz;
-%             if(floor(K1) ~= K1)
-%                 disp("resample_hz not supported!");
-%                 status = 0;
-%                 tskcnt = task_seq;
-%                 return
-%             end
-%             % q: Nx6
-%             num_waypoints = size(q, 1);
-%             traj_q = zeros(1875, 6);
-%             traj_q(1:num_waypoints, :) = q(:, :);
-%             traj_q = reshape(traj_q.', 1,[]);
-%             
-%             judp('send',8104,'192.168.7.5',typecast(single([traj_q(:).',num_waypoints,traj_hz,resample_hz,ovr,task_seq]),'int8'));
-%             
-%             msg=judp('receive',25000,8,obj.timeout*1000);
-%             msg=typecast(msg,'single');
-%             msg=double(msg);
-%             status = logical(msg(1));
-%             tskcnt = task_seq;%double(msg(2)); % msg(2) = task count
-%         end
+        function [status,tskcnt] = drvJntTrajWait(obj,q,traj_hz,resample_hz,ovr,task_seq)
+            K1 = 1/traj_hz/0.008/resample_hz;
+            if(floor(K1) ~= K1)
+                disp("resample_hz not supported!");
+                status = 0;
+                tskcnt = task_seq;
+                return
+            end
+            % q: Nx6
+            num_waypoints = size(q, 1);
+            traj_q = zeros(1875, 6);
+            traj_q(1:num_waypoints, :) = q(:, :);
+            traj_q = reshape(traj_q.', 1,[]);
+            
+            judp('send',8104,obj.ip,typecast(single([traj_q(:).',num_waypoints,traj_hz,resample_hz,ovr,task_seq]),'int8'));
+            
+            msg=judp('receive',25000,8,obj.timeout*1000);
+            msg=typecast(msg,'single');
+            msg=double(msg);
+            status = logical(msg(1));
+            tskcnt = task_seq;%double(msg(2)); % msg(2) = task count
+        end
         
         function status = drvJntTraj(obj,q,traj_hz,resample_hz,ovr,task_seq)
             K1 = 1/traj_hz/0.008/resample_hz;
@@ -169,7 +172,7 @@ classdef SLRTComm < handle
             traj_q(1:num_waypoints, :) = q(:, :);
             traj_q = reshape(traj_q.', 1,[]);
             
-            judp('send',8104,'192.168.7.5',typecast(single([traj_q(:).',num_waypoints,traj_hz,resample_hz,ovr,task_seq]),'int8'));
+            judp('send',8104,obj.ip,typecast(single([traj_q(:).',num_waypoints,traj_hz,resample_hz,ovr,task_seq]),'int8'));
             status = 1;
         end
     end
